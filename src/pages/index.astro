@@ -1,17 +1,56 @@
 ---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
 
+const posts = await getCollection("posts", ({ data }) => {
+  return data.draft !== true;
+});
+
+const sortedPosts = posts.sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout
+  title="我的中文部落格"
+  description="使用 GitHub 管理文章的中文部落格"
+>
+  <main>
+    <h1>我的中文部落格</h1>
+    <p>使用 GitHub 作為文章存放與資料管理。</p>
+
+    <h2>最新文章</h2>
+
+    {
+      sortedPosts.length === 0 ? (
+        <p>目前尚無文章。</p>
+      ) : (
+        <section>
+          {sortedPosts.map((post) => (
+            <article>
+              <h3>
+                <a href={`${import.meta.env.BASE_URL}posts/${post.data.slug}/`}>
+                  {post.data.title}
+                </a>
+              </h3>
+
+              <p>{post.data.description}</p>
+
+              <p class="meta">
+                {post.data.date.toLocaleDateString("zh-TW")}
+                {" ｜ "}
+                {post.data.category}
+              </p>
+
+              <p>
+                {post.data.tags.map((tag) => (
+                  <span class="tag">#{tag}</span>
+                ))}
+              </p>
+            </article>
+          ))}
+        </section>
+      )
+    }
+  </main>
+</BaseLayout>
